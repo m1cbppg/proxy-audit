@@ -280,8 +280,8 @@ fn run_scan(
     } else {
         // 3. 打印表头
         println!(
-            "{:<30}\t{:<15}\t{:<30}\t{:<15}",
-            "NAME", "MODE", "PROXY", "REGION"
+            "{:<8}\t{:<30}\t{:<15}\t{:<30}\t{:<15}",
+            "PID", "NAME", "MODE", "PROXY", "REGION"
         );
 
         // 4. 打印每行数据
@@ -327,7 +327,8 @@ fn run_scan(
             };
 
             println!(
-                "{:<30}\t{:<15}\t{:<30}\t{:<15}",
+                "{:<8}\t{:<30}\t{:<15}\t{:<30}\t{:<15}",
+                res.pid,
                 &res.name,
                 mode_str,
                 &proxy_final,

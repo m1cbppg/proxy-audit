@@ -19,7 +19,7 @@ macOS CLI 工具，用于审计运行中的进程是否走代理。
 
 ```bash
 # 1. 添加 Tap
-brew tap mlcbppg/tap
+brew tap m1cbppg/tap
 
 # 2. 安装
 brew install proxy-audit
