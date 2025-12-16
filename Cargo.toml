@@ -1,0 +1,54 @@
+[package]
+name = "proxy-audit"
+version = "0.1.0"
+edition = "2021"
+authors = ["You <you@example.com>"]
+description = "macOS CLI tool to audit whether processes are using proxies"
+
+# ========================================
+# 运行时依赖
+# ========================================
+[dependencies]
+# 错误处理：用 anyhow 简化 Result<T, E> 的传播
+anyhow = "1"
+
+# CLI 参数解析：使用 derive 宏自动生成解析代码
+clap = { version = "4", features = ["derive"] }
+
+# FFI 基础类型：libc 提供 C 的基本类型定义
+libc = "0.2"
+
+# JSON 序列化：serde + serde_json 用于 --json 输出
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# 可选依赖：探测本地代理的出口 IP
+# - blocking: 同步阻塞 HTTP 客户端（CLI 不需要异步）
+# - json: 自动解析 JSON 响应
+# - rustls-tls: 使用纯 Rust TLS 实现，避免系统 OpenSSL 依赖
+# - socks: 支持 SOCKS5 代理
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls", "socks"] }
+
+# 并行计算：rayon 用于多线程扫描
+rayon = "1.8"
+
+# 可选依赖：GeoIP 查询
+# - mmap: 使用内存映射读取 mmdb，减少内存占用
+# 注：使用 0.24 版本，API 更简单稳定
+maxminddb = "0.24"
+
+# ========================================
+# 构建时依赖（build.rs 使用）
+# ========================================
+[build-dependencies]
+# bindgen：从 C 头文件自动生成 Rust FFI 绑定
+bindgen = "0.72"
+
+# ========================================
+# 编译优化
+# ========================================
+[profile.release]
+# LTO 优化：减小二进制体积，提高性能
+lto = true
+# 单代码生成单元：配合 LTO 获得更好的优化效果
+codegen-units = 1
