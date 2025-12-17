@@ -38,6 +38,7 @@ use clap::{Parser, Subcommand};
 use std::env;
 mod geo;
 mod macos;
+mod monitor;
 mod proxy;
 mod rule;
 mod scan;
@@ -91,6 +92,8 @@ enum Commands {
         #[arg(long)]
         debug: bool,
     },
+    /// 实时流量监控 (Top like TUI)
+    Top,
     /// 更新 GeoIP 数据库
     #[command(name = "update-geo")]
     UpdateGeo {
@@ -208,6 +211,7 @@ fn main() {
             run_update_geo(&config_dir, &default_geo_path, url, force)
         }
         Commands::Rule { action } => run_rule_command(action),
+        Commands::Top => monitor::ui::run_tui(),
     };
 
     // 处理错误

@@ -50,13 +50,49 @@ sudo proxy-audit scan -a
 sudo proxy-audit scan <PID>
 ```
 
-### 4. 更新数据库
+### 4. 实时流量监控 (Top)
+类似系统的 `top` 命令，但专注于**进程网络流量**监控。可以实时查看哪些应用正在消耗带宽。
+
+```bash
+sudo proxy-audit top
+```
+
+**界面说明:**
+
+| 列 | 含义 |
+| :--- | :--- |
+| **PID** | 进程 ID |
+| **NAME** | 进程名称 |
+| **UP/s** | 实时**上传**速率 |
+| **DOWN/s** | 实时**下载**速率 |
+| **TOT UP** | 监控启动后的累计上传量 |
+| **TOT DOWN** | 监控启动后的累计下载量 |
+| **IFACE** | 进程使用的网络接口 (`en0`, `utun` 等) |
+
+> 💡 **绿色高亮**: 接口名以 `utun` 开头的进程（通常代表 **VPN / 代理** 流量）会被绿色高亮显示。
+
+**TIPS: 为什么流量看起来是双倍的？**
+如果您使用了 Clash 等本地代理，您可能会看到两个高流量进程：
+1.  **Google Chrome**: 实际产生请求的应用（流量流向本地代理端口）。
+2.  **ClashX Pro**: 代理客户端（接收 Chrome 流量并转发到公网）。
+*即使 Chrome 显示在大流量下载，Clash 也会显示大致相同的下载量，这是正常的系统统计机制。*
+
+**快捷键:**
+*   `s`: 切换排序（按 **下载速率** / **上传速率** / **PID** 循环切换）。
+*   `q` 或 `Esc`: 退出监控。
+
+### 5. 探测本地代理的出口 IP
+```bash
+sudo proxy-audit scan --probe-exit --geo-db /path/to/GeoLite2-Country.mmdb
+```
+
+### 6. 更新数据库
 工具虽然内置了数据库，但你也可以手动更新到最新版：
 ```bash
 sudo proxy-audit update-geo --force
 ```
 
-### 5. 规则生成器 (Smart Rule Generator)
+### 7. 规则生成器 (Smart Rule Generator)
 
 自动为你的代理客户端生成基于进程的代理规则，实现单个进程代理模式的灵活切换。
 

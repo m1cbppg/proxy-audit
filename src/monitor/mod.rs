@@ -4,3 +4,5 @@
 //! using the system's `nettop` utility.
 
 pub mod nettop;
+pub mod tracker;
+pub mod ui;
