@@ -55,9 +55,10 @@ sudo proxy-audit scan <PID>
 sudo proxy-audit update-geo --force
 ```
 
-### 5. 智能规则生成器 (Smart Rule Generator)
+### 5. 规则生成器 (Smart Rule Generator)
 
-为你的代理客户端自动生成稳定、基于进程的规则，彻底解决**策略失效**和**规则冲突**问题。
+为你的代理客户端自动生成基于进程的代理规则，实现一个进程可切换是否走代理
+使用场景：开了TUN，一些国内应用程序也走了虚拟网卡，导致网速较慢，可以使用此命令，强制将这些进程的代理模式切换到直连
 
 **核心机制 (Policy-Based Sets):**
 我们将规则分散存储在 `rules-direct`, `rules-proxy`, `rules-reject` 三个独立文件中。
