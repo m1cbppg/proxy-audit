@@ -39,6 +39,7 @@ use std::env;
 mod geo;
 mod macos;
 mod proxy;
+mod rule;
 mod scan;
 
 /// 默认 GeoIP 数据库下载地址 (GitHub Mirror)
@@ -101,6 +102,50 @@ enum Commands {
         #[arg(long)]
         force: bool,
     },
+    /// 规则生成和管理
+    Rule {
+        #[command(subcommand)]
+        action: RuleAction,
+    },
+}
+
+/// 规则子命令
+#[derive(Subcommand)]
+enum RuleAction {
+    /// 初始化规则文件并显示配置指南
+    Init {
+        /// 规则格式
+        #[arg(long, short = 'f', value_enum, default_value = "clash")]
+        format: rule::OutputFormat,
+    },
+    /// 扫描进程连接并追加规则到文件
+    Add {
+        /// 目标进程 PID
+        #[arg(long, short = 'p')]
+        pid: i32,
+
+        /// 规则策略 (DIRECT/PROXY/REJECT)
+        #[arg(long, default_value = "DIRECT")]
+        policy: String,
+
+        /// 规则格式
+        #[arg(long, short = 'f', value_enum, default_value = "clash")]
+        format: rule::OutputFormat,
+    },
+    /// 仅打印规则到标准输出（不写入文件）
+    Print {
+        /// 目标进程 PID
+        #[arg(long, short = 'p')]
+        pid: i32,
+
+        /// 规则策略 (DIRECT/PROXY/REJECT)
+        #[arg(long, default_value = "DIRECT")]
+        policy: String,
+
+        /// 规则格式
+        #[arg(long, short = 'f', value_enum, default_value = "clash")]
+        format: rule::OutputFormat,
+    },
 }
 
 // ========================================
@@ -162,6 +207,7 @@ fn main() {
         Commands::UpdateGeo { url, force } => {
             run_update_geo(&config_dir, &default_geo_path, url, force)
         }
+        Commands::Rule { action } => run_rule_command(action),
     };
 
     // 处理错误
@@ -222,6 +268,55 @@ fn run_update_geo(
 
     println!("Successfully updated GeoIP database!");
     Ok(())
+}
+
+// ========================================
+// 规则命令实现
+// ========================================
+
+// ========================================
+// 规则相关功能
+// ========================================
+
+/// 执行规则命令
+fn run_rule_command(action: RuleAction) -> anyhow::Result<()> {
+    let manager = rule::RuleFileManager::new()?;
+
+    match action {
+        RuleAction::Init { format } => {
+            let guide = manager.init(format)?;
+            println!("{}", guide);
+        }
+        RuleAction::Add {
+            pid,
+            policy,
+            format,
+        } => {
+            let policy_enum = parse_policy(&policy)?;
+            manager.add_rule(pid, policy_enum, format)?;
+            println!("Rule added successfully.");
+        }
+        RuleAction::Print {
+            pid,
+            policy,
+            format,
+        } => {
+            let policy_enum = parse_policy(&policy)?;
+            let rule = manager.generate_rule(pid, policy_enum, format)?;
+            println!("{}", rule);
+        }
+    }
+    Ok(())
+}
+
+/// 解析策略字符串为 RulePolicy 枚举
+fn parse_policy(policy: &str) -> anyhow::Result<rule::RulePolicy> {
+    match policy.to_uppercase().as_str() {
+        "DIRECT" => Ok(rule::RulePolicy::Direct),
+        "PROXY" => Ok(rule::RulePolicy::Proxy),
+        "REJECT" => Ok(rule::RulePolicy::Reject),
+        _ => anyhow::bail!("Invalid policy. Supported: DIRECT, PROXY, REJECT"),
+    }
 }
 
 // ========================================

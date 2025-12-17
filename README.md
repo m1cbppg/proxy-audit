@@ -54,3 +54,47 @@ sudo proxy-audit scan <PID>
 ```bash
 sudo proxy-audit update-geo --force
 ```
+
+### 5. 智能规则生成器 (Smart Rule Generator)
+
+为你的代理客户端自动生成稳定、基于进程的规则，彻底解决**策略失效**和**规则冲突**问题。
+
+**核心机制 (Policy-Based Sets):**
+我们将规则分散存储在 `rules-direct`, `rules-proxy`, `rules-reject` 三个独立文件中。
+无论你如何调整单个进程的策略（例如从直连切换到代理），工具会自动在这些文件间迁移规则，确保策略精准生效。
+
+**支持格式:**
+*   **Clash**: 自动生成 `PROCESS-NAME` 规则
+*   **Surge**: 自动生成 `PROCESS-NAME` 规则
+*   **Sing-box**: 自动生成 `process_name` 规则集
+*   *(Quantumult X 暂不支持进程名规则)*
+
+**使用步骤:**
+
+1.  **初始化 (仅需一次)**:
+    ```bash
+    proxy-audit rule init --format clash
+    ```
+    命令会生成 3 个规则文件，并输出**配置指南**。
+    > **⚠️ 关键两点**:
+    > 1. 请务必按照屏幕提示，在您的代理软件中注册这 3 个 Rule Provider。
+    > 2. **Clash 用户注意**: 在配置 `rules` 时，请将示例中的 `PROXY` 替换为您配置文件中**实际存在的策略组名称**（例如 `Proxy`, `节点选择`, `🚀 节点选择` 等），否则会报错 "proxy not found"。
+
+2.  **添加/修改规则**:
+    当您发现某个应用（例如 Telegram）分流不正确时，运行：
+    ```bash
+    # 扫描 PID，检测进程名，并将其强制加入 PROXY 列表
+    # (如果它之前在 DIRECT 列表中，会被自动移除，实现无缝切换)
+    sudo proxy-audit rule add --pid <PID> --policy PROXY
+    ```
+
+3.  **生效**:
+    *   **重载配置**: 在代理软件中点击 "Reload Config"。
+    *   **重启应用 (重要)**: 对于 Telegram 等保持长连接的应用，重载配置**有时不会**切断旧连接。您必须**彻底退出并重启该应用**，新规则才会生效。
+
+**常用命令:**
+
+*   **设为直连**: `proxy-audit rule add --pid <PID> --policy DIRECT`
+*   **设为拒绝**: `proxy-audit rule add --pid <PID> --policy REJECT`
+*   **仅打印规则**: `proxy-audit rule print --pid <PID> --format clash` (不写入文件)
+
